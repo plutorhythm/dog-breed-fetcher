@@ -7,7 +7,11 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import java.util.*;
+
 
 /**
  * BreedFetcher implementation that relies on the dog.ceo API.
@@ -25,11 +29,40 @@ public class DogApiBreedFetcher implements BreedFetcher {
      */
     @Override
     public List<String> getSubBreeds(String breed) {
-        // TODO Task 1: Complete this method based on its provided documentation
-        //      and the documentation for the dog.ceo API. You may find it helpful
-        //      to refer to the examples of using OkHttpClient from the last lab,
-        //      as well as the code for parsing JSON responses.
-        // return statement included so that the starter code can compile and run.
-        return new ArrayList<>();
+        if (breed == null || breed.isBlank()) {
+            throw new BreedNotFoundException(String.valueOf(breed));
+        }
+
+        String normalized = breed.trim().toLowerCase(Locale.ROOT);
+        String url = "https://dog.ceo/api/breed/" + normalized + "/list";
+
+        Request request = new Request.Builder().url(url).build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (response.body() == null) {
+                throw new IOException("Empty response body");
+            }
+
+            if (!response.isSuccessful()) {
+                throw new BreedNotFoundException(breed);
+            }
+
+            String body = response.body().string();
+            JSONObject json = new JSONObject(body);
+            String status = json.optString("status", "error");
+
+            if (!"success".equalsIgnoreCase(status)) {
+                throw new BreedNotFoundException(breed);
+            }
+
+            JSONArray arr = json.getJSONArray("message");
+            List<String> subBreeds = new ArrayList<>(arr.length());
+            for (int i = 0; i < arr.length(); i++) {
+                subBreeds.add(arr.getString(i));
+            }
+            return subBreeds;
+        } catch (IOException e) {
+            throw new BreedNotFoundException(breed);
+        }
     }
 }
