@@ -13,8 +13,9 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 /**
- * BreedFetcher implementation that calls the Dog CEO API.
- * All failures are surfaced as BreedNotFoundException.
+ * BreedFetcher implementation that relies on the dog.ceo API.
+ * Note that all failures get reported as BreedNotFoundException
+ * exceptions to align with the requirements of the BreedFetcher interface.
  */
 public class DogApiBreedFetcher implements BreedFetcher {
 
@@ -25,8 +26,10 @@ public class DogApiBreedFetcher implements BreedFetcher {
             .build();
 
     /**
-     * Fetch the list of sub-breeds for the given breed.
-     * GET https://dog.ceo/api/breed/{breed}/list
+     * Fetch the list of sub breeds for the given breed from the dog.ceo API.
+     * @param breed the breed to fetch sub breeds for
+     * @return list of sub breeds for the given breed
+     * @throws BreedNotFoundException if the breed does not exist (or if the API call fails for any reason)
      */
     @Override
     public List<String> getSubBreeds(String breed) {
